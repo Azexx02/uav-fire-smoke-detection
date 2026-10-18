@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="林焰智巡">
+  <circle cx="64" cy="64" r="49" fill="#f8fbf7" stroke="#2e6b45" stroke-width="4"/>
+  <path d="M21 87h86" fill="none" stroke="#2e6b45" stroke-width="3" stroke-linecap="round"/>
+  <g fill="#2e6b45">
+    <path d="M61 27 38 66h14L34 91h54L70 66h14L61 27z"/>
+    <rect x="56" y="83" width="10" height="11" rx="1"/>
+    <path d="M90 42 75 67h9L71 88h39L98 67h9L90 42z"/>
+    <rect x="86" y="82" width="7" height="10" rx="1"/>
+    <path d="M34 49 22 69h8L19 87h31L40 69h7L34 49z"/>
+    <rect x="31" y="82" width="6" height="9" rx="1"/>
+  </g>
+</svg>

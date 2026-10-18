@@ -1,0 +1,6 @@
+{
+    "routine_interval": 300.0,
+    "fire_video_enabled": true,
+    "smoke_burst_enabled": true,
+    "pre_connect_enabled": true
+}

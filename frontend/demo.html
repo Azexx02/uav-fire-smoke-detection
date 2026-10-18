@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>实时演示 — 林焰智巡</title>
+ <link rel="stylesheet" href="css/style.css?v=3.0.4">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='72' font-family='Arial'>L</text></svg>">
+</head>
+<body>
+ <!-- ===== Navigation ===== -->
+ <nav class="navbar">
+ <div class="container">
+ <a href="index.html" class="nav-brand">
+ <img class="brand-icon" src="assets/brand-mark.svg" alt="林焰智巡"><span>林焰智巡</span>
+ </a>
+ <ul class="nav-links">
+ <li><a href="index.html"><span>实时检测</span></a></li>
+ <li><a href="demo.html" class="active"><span>实时演示</span></a></li>
+ <li><a href="history.html"><span>历史回看</span></a></li>
+ <li><a href="scoring.html"><span>专家评审</span></a></li>
+ <li><a href="report.html"><span>模型报告</span></a></li>
+ <li><a href="dataset.html"><span>素材管理</span></a></li>
+ </ul>
+ <div class="nav-status" id="systemStatus">
+ <span class="status-dot" id="statusDot"></span>
+ <span id="statusText">连接中…</span>
+ </div>
+ </div>
+ </nav>
+
+ <!-- ===== Main Content ===== -->
+ <div class="page-wrapper">
+ <div class="container">
+ <!-- Header -->
+ <div class="page-header text-center">
+ <h1 style="justify-content:center;">实时演示模式</h1>
+ <p class="subtitle">用于现场实战测评，自动识别稳定截图并精确打点计时</p>
+ </div>
+
+ <!-- Main Layout -->
+ <div class="layout-split">
+ <!-- Left: Preview Area -->
+ <div class="card-flat">
+ <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+ <span class="card-title">实时巡检画面</span>
+ <div class="flex gap-8 items-center">
+ <span style="font-size:0.75rem; color:var(--text-muted);">摄像头源:</span>
+ <select class="form-select" id="cameraSelect" style="padding: 4px 8px; font-size: 0.75rem; width: 120px; border-radius: 4px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.4);">
+ <option value="downward" selected>向下视角 (默认)</option>
+ <option value="forward">向前视角</option>
+ </select>
+ </div>
+ </div>
+
+ <div class="video-preview" id="cameraPreview" style="position:relative;">
+ <img id="cameraStream" alt="巡检画面" style="width:100%;height:100%;object-fit:cover;display:none;">
+ <div class="placeholder" id="cameraPlaceholder" style="position:absolute;inset:0;z-index:2;">
+ <div class="placeholder-icon"></div><span>摄像头画面</span>
+ <span style="font-size:0.8rem;color:var(--text-muted);">开启演示或点击下方开启巡检监控</span>
+ </div>
+ </div>
+
+ <div class="flex gap-12 mt-12">
+ <button class="btn btn-primary w-full" id="btnToggleCamera">开启巡检监控
+ </button>
+ </div>
+ </div>
+
+ <!-- Right: Status Area -->
+ <div>
+ <!-- Demo Control Card -->
+ <div class="card-flat mb-16" style="border: 1px solid rgba(245, 158, 11, 0.2); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.05);">
+ <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:12px; margin-bottom:16px;">
+ <span class="card-title" style="color: var(--accent-orange); margin:0;">实测演示控制器</span>
+ </div>
+
+ <!-- Stats -->
+ <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+ <span style="font-size: 0.8rem; color: var(--text-muted);">样本采集进度</span>
+ <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);" id="demoProgressVal">0 / 20 张</span>
+ </div>
+ 
+ <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 16px; max-width: 100%;">
+ <div class="progress-fill" id="demoProgressFill" style="width: 0%; background: var(--accent-orange); transition: width 0.3s ease; height: 100%;"></div>
+ </div>
+
+ <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+ <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: var(--radius-sm); text-align: center;">
+ <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px;">已耗时</div>
+ <div style="font-size: 1.4rem; font-weight: 800; font-family: monospace; color: var(--text-primary);" id="demoTimerVal">0 秒</div>
+ </div>
+ <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: var(--radius-sm); text-align: center;">
+ <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px;">推理时效得分</div>
+ <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-orange);" id="demoScoreVal">15.00</div>
+ </div>
+ </div>
+
+ <div id="demoCompleteAlert" class="hidden" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); padding: 12px; border-radius: var(--radius-sm); text-align: center; margin-bottom: 16px;">
+ <span style="font-size: 0.8rem; color: var(--success-green); font-weight: bold;">实测已采集满 20 张！请前往【专家评审】进行准确度打分。</span>
+ </div>
+
+ <!-- Actions -->
+ <div class="flex flex-col gap-12">
+ <div class="flex gap-12">
+ <button class="btn btn-primary" id="btnStartDemo" style="flex:1; padding: 10px 14px;">开始演示</button>
+ <button class="btn btn-danger" id="btnStopDemo" style="flex:1; padding: 10px 14px;" disabled>停止演示</button>
+ </div>
+ <button class="btn btn-primary w-full" id="btnManualDemoCapture" style="padding: 9px 12px; font-size:0.85rem;">手动截图检测（计入本轮）</button>
+ <button class="btn btn-ghost w-full" id="btnResetDemo" style="color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; font-size:0.8rem;">重置当前演示状态与截图</button>
+ </div>
+ 
+ <p style="font-size:0.7rem;color:var(--text-muted);line-height:1.4;margin: 12px 0 0 0; text-align: left;">提示：演示启动后，系统在同一起火/起烟目标识别稳定后才进行自动截图。采集第 1 张时启动计时器，直到截满 20 张后停止计时。限时 180s 内获 15 分，超时后每过 1s 扣除 0.5 分。</p>
+ </div>
+
+ <!-- Connection details -->
+ <div class="camera-conn-card" id="cameraConnCard" style="padding:10px 12px;">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+ <div class="camera-conn-left">
+ <div>
+ <div class="camera-conn-label">摄像头硬件连接</div>
+ <div class="camera-conn-sub" id="cameraConnSub">摄像头未就绪</div>
+ </div>
+ </div>
+ <div style="display:flex; gap:6px; flex-shrink:0;">
+ <button class="btn btn-ghost btn-sm" id="btnCheckCamera">连接并检测
+ </button>
+ <button class="btn btn-ghost btn-sm" id="btnForceReconnect" style="color: var(--danger-red); border-color: rgba(239, 68, 68, 0.3);">强制重连
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Live Captures Grid -->
+ <div class="card-flat mt-24" id="demoCapturesContainer">
+ <div class="card-header">
+ <span class="card-title">本轮演示已自动采集素材 (`<span id="demoCapturedCountText">0</span>/20`)</span>
+ </div>
+ <div class="thumb-strip" id="demoCapturesList">
+ <div class="empty-state" style="padding:16px 0;width:100%;">
+ <p style="color:var(--text-muted);font-size:0.85rem;">等待演示启动并采集第一张图像...</p>
+ </div>
+ </div>
+ </div>
+
+ <!-- Footer -->
+ <footer class="footer">
+ <p>林焰智巡 · 森林火灾智能巡检系统 · 基于 YOLO26s 深度学习模型</p>
+ <p style="margin-top:4px;">© 2026 锐通科技 · Ruicom Technology</p>
+ </footer>
+ </div>
+ </div>
+
+ <!-- Lightbox -->
+ <div class="lightbox-overlay" id="lightbox">
+ <button class="lightbox-close" onclick="closeLightbox()"></button>
+ <img id="lightboxImg" alt="大图预览">
+ </div>
+
+ <script src="js/api.js?v=3.0.4"></script>
+ <script src="js/demo.js?v=3.0.5"></script>
+</body>
+</html>

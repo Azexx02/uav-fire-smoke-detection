@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>林焰智巡 — 森林火灾智能巡检系统</title>
+ <link rel="stylesheet" href="css/style.css?v=3.0.4">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='72' font-family='Arial'>L</text></svg>">
+</head>
+<body>
+ <!-- ===== Navigation ===== -->
+ <nav class="navbar">
+ <div class="container">
+ <a href="index.html" class="nav-brand">
+ <img class="brand-icon" src="assets/brand-mark.svg" alt="林焰智巡"><span>林焰智巡</span>
+ </a>
+ <ul class="nav-links">
+ <li><a href="index.html" class="active"><span>实时检测</span></a></li>
+ <li><a href="demo.html"><span>实时演示</span></a></li>
+ <li><a href="history.html"><span>历史回看</span></a></li>
+ <li><a href="scoring.html"><span>专家评审</span></a></li>
+ <li><a href="report.html"><span>模型报告</span></a></li>
+ <li><a href="dataset.html"><span>素材管理</span></a></li>
+ </ul>
+ <div class="nav-status" id="systemStatus">
+ <span class="status-dot" id="statusDot"></span>
+ <span id="statusText">连接中…</span>
+ </div>
+ </div>
+ </nav>
+
+ <!-- ===== Main Content ===== -->
+ <div class="page-wrapper">
+ <div class="container">
+ <!-- Hero -->
+ <section class="hero">
+ <h1 class="hero-title">林焰智巡</h1>
+ <p class="hero-subtitle">森林火灾智能巡检系统 · Forest Fire Intelligent Patrol</p>
+ </section>
+
+ <!-- Main Layout -->
+ <div class="layout-split">
+ <!-- Left: Detection Area -->
+ <div class="card-flat">
+ <!-- Tabs -->
+ <div class="tabs mb-16">
+ <button class="tab-btn active" data-tab="camera">摄像头</button>
+ <button class="tab-btn" data-tab="upload">图片上传</button>
+ <button class="tab-btn" data-tab="video">视频检测</button>
+ </div>
+
+ <!-- Camera Tab -->
+ <div class="tab-content active" id="tab-camera">
+ <div class="video-preview" id="cameraPreview" style="position:relative;">
+ <!-- img 默认 display:none，在 JS 中动态控制 display 和 opacity 解决板载 MJPEG 渲染卡死问题 -->
+ <img id="cameraStream" alt="摄像头画面" style="width:100%;height:100%;object-fit:cover;display:none;">
+ <!-- 占位层绝对覆盖在 img 上方，开启时隐藏 -->
+ <div class="placeholder" id="cameraPlaceholder" style="position:absolute;inset:0;z-index:2;">
+ <div class="placeholder-icon"></div><span>摄像头画面</span>
+ <span style="font-size:0.8rem;color:var(--text-muted);">点击「开启摄像头」开始实时检测</span>
+ </div>
+ </div>
+
+ <div class="flex gap-12 mt-12">
+ <button class="btn btn-primary w-full" id="btnToggleCamera">开启摄像头
+ </button>
+ <button class="btn btn-ghost" id="btnCaptureFrame">截图检测
+ </button>
+ </div>
+ </div>
+
+ <!-- Upload Tab -->
+ <div class="tab-content" id="tab-upload">
+ <div class="drop-zone" id="dropZone">
+ <div class="drop-zone-icon"></div>
+ <p class="drop-zone-text">拖拽图片到此处，或点击选择文件</p>
+ <p class="drop-zone-hint">支持 JPG、PNG、BMP 格式</p>
+ <input type="file" id="fileInput" accept="image/*" style="display:none;">
+ </div>
+ <div id="imagePreviewContainer" class="mt-12 hidden">
+ <div class="video-preview relative">
+ <img id="uploadPreview" alt="预览图片">
+ <div class="loading-overlay" id="uploadLoading">
+ <div class="spinner"></div>
+ </div>
+ </div>
+ <div class="flex gap-12 mt-12">
+ <button class="btn btn-primary w-full" id="btnDetectImage">开始检测
+ </button>
+ <button class="btn btn-ghost" id="btnClearUpload">清除
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Video Tab -->
+ <div class="tab-content" id="tab-video">
+ <div class="drop-zone" id="videoDropZone">
+ <div class="drop-zone-icon"></div>
+ <p class="drop-zone-text">拖拽视频到此处，或点击选择视频</p>
+ <p class="drop-zone-hint">支持 MP4、AVI、MOV 格式</p>
+ <input type="file" id="videoInput" accept="video/*" style="display:none;">
+ </div>
+ <div id="videoPreviewContainer" class="mt-12 hidden">
+ <div class="video-preview relative">
+ <video id="videoPreview" controls></video>
+ <div class="loading-overlay" id="videoLoading">
+ <div class="flex flex-col items-center gap-8">
+ <div class="spinner"></div>
+ <span style="color:var(--text-secondary);font-size:0.85rem;" id="videoProgressText">处理中...</span>
+ </div>
+ </div>
+ </div>
+ <div class="flex gap-12 mt-12 items-center">
+ <div class="flex-1">
+ <label class="form-label">帧间隔</label>
+ <input type="number" class="form-input" id="frameInterval" value="5" min="1" max="30" style="width:80px;">
+ </div>
+ <button class="btn btn-primary" id="btnDetectVideo">开始检测
+ </button>
+ <button class="btn btn-ghost" id="btnClearVideo">清除
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Detected Image Result -->
+ <div id="resultImageContainer" class="mt-16 hidden">
+ <h3 style="font-family:var(--font-cn);font-size:0.95rem;color:var(--text-secondary);margin-bottom:8px;"> 检测结果</h3>
+ <div class="video-preview">
+ <img id="resultImage" alt="检测结果">
+ </div>
+ </div>
+ </div>
+
+ <!-- Right: Settings & Controls Panel -->
+ <div>
+ <!-- Confidence Slider -->
+ <div class="card-flat mb-16">
+ <div class="flex items-center justify-between mb-8">
+ <span class="form-label" style="margin:0;">置信度阈值</span>
+ <span class="badge badge-info" id="confValue">0.25</span>
+ </div>
+ <input type="range" class="range-slider" id="confSlider" min="0" max="1" step="0.05" value="0.25">
+ <p style="font-size:0.72rem;color:var(--text-muted);margin-top:6px;line-height:1.4;">调整模型检测置信度阈值，影响图片上传和摄像头截图检测的灵敏度。</p>
+ </div>
+
+ <!-- System Settings Panel -->
+ <div class="card-flat">
+ <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:12px; margin-bottom:16px;">
+ <span class="card-title">系统集成设置</span>
+ <span class="badge" style="background:rgba(59, 130, 246, 0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:0.7rem;">RADXA 机载</span>
+ </div>
+
+ <!-- Routine Capture Interval Setting -->
+ <div class="mb-20">
+ <label class="form-label flex items-center justify-between mb-8"><span>例行巡检快照频率</span>
+ <span class="badge badge-muted" id="routineIntervalVal">5分钟/次</span>
+ </label>
+ <select class="form-select" id="settingRoutineInterval">
+ <option value="60">每隔 1 分钟 (高频演示模式)</option>
+ <option value="300" selected>每隔 5 分钟 (标准巡检模式)</option>
+ <option value="600">每隔 10 分钟</option>
+ <option value="1800">每隔 30 分钟</option>
+ <option value="-1"> 停用例行快照</option>
+ </select>
+ <p class="form-hint mt-6" style="font-size:0.75rem;color:var(--text-muted);line-height:1.4;">即使画面无火烟触发，系统仍会按间隔自动抓取一张高分辨率照片送审留痕备查。</p>
+ </div>
+
+ <!-- Alarm and Recording Toggles -->
+ <div class="mb-16">
+ <label class="form-label mb-8">应急监测与告警控制</label>
+ 
+ <!-- Fire Video Record Toggle -->
+ <div class="flex items-center justify-between py-8" style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+ <div>
+ <span style="font-size:0.88rem;color:var(--text-primary);">持续火焰自动录制</span>
+ <p style="font-size:0.72rem;color:var(--text-muted);margin:2px 0 0 0;line-height:1.3;">火点确认后自动截取该段视频片段归档</p>
+ </div>
+ <label class="switch-container">
+ <input type="checkbox" id="settingFireVideo" checked>
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+
+ <!-- Smoke Burst Photo Toggle -->
+ <div class="flex items-center justify-between py-8" style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+ <div>
+ <span style="font-size:0.88rem;color:var(--text-primary);">烟雾触发智能三连拍</span>
+ <p style="font-size:0.72rem;color:var(--text-muted);margin:2px 0 0 0;line-height:1.3;">检测到起烟时自动拍摄三张特征图合一</p>
+ </div>
+ <label class="switch-container">
+ <input type="checkbox" id="settingSmokeBurst" checked>
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+
+ <!-- Sound Alarm Voice synthesis Toggle -->
+ <div class="flex items-center justify-between py-8">
+ <div>
+ <span style="font-size:0.88rem;color:var(--text-primary);">智能语音应急广播</span>
+ <p style="font-size:0.72rem;color:var(--text-muted);margin:2px 0 0 0;line-height:1.3;">系统报警时，触发本地中文智能语音喊话</p>
+ </div>
+ <label class="switch-container">
+ <input type="checkbox" id="settingAlarmVoice" checked>
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+ </div>
+
+
+ </div>
+
+ <!-- Camera Connection Status Card -->
+ <div class="camera-conn-card mt-16" id="cameraConnCard">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+ <div class="camera-conn-left">
+ <div>
+ <div class="camera-conn-label">摄像头硬件状态</div>
+ <div class="camera-conn-sub" id="cameraConnSub">点击右侧按钮连接</div>
+ </div>
+ </div>
+ <button class="btn btn-ghost btn-sm" id="btnCheckCamera" style="flex-shrink:0;">连接摄像头
+ </button>
+ </div>
+ <!-- 预热连接开关（折叠隐藏）-->
+ <details class="preconn-details">
+ <summary>预热连接</summary>
+ <div class="preconn-row"><span>点击连接时提前建立流，使摄像头开关即时响应</span>
+ <label class="switch-container" style="flex-shrink:0;">
+ <input type="checkbox" id="settingPreConnect">
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+ </details>
+ </div>
+ </div>
+ </div>
+
+ <!-- Recent Captures Strip -->
+ <div class="card-flat mt-24">
+ <div class="card-header">
+ <span class="card-title">最近检测</span>
+ <a href="history.html" class="btn btn-sm btn-ghost">查看全部 →</a>
+ </div>
+ <div class="thumb-strip" id="recentCaptures">
+ <div class="empty-state" style="padding:12px 0;width:100%;">
+ <p style="color:var(--text-muted);font-size:0.8rem;">暂无记录</p>
+ </div>
+ </div>
+ </div>
+
+ <!-- Footer -->
+ <footer class="footer">
+ <p>林焰智巡 · 森林火灾智能巡检系统 · 基于 YOLO26s 深度学习模型</p>
+ <p style="margin-top:4px;">© 2026 锐通科技 · Ruicom Technology</p>
+ </footer>
+ </div>
+ </div>
+
+ <!-- Lightbox -->
+ <div class="lightbox-overlay" id="lightbox">
+ <button class="lightbox-close" onclick="closeLightbox()"></button>
+ <img id="lightboxImg" alt="大图预览">
+ </div>
+
+ <script src="js/api.js?v=3.0.4"></script>
+ <script src="js/app.js?v=3.0.6"></script>
+</body>
+</html>

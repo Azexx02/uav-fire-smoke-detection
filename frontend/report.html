@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>模型评估报告 — 林焰智巡</title>
+ <link rel="stylesheet" href="css/style.css?v=3.0.4">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='72' font-family='Arial'>L</text></svg>">
+</head>
+<body>
+ <!-- ===== Navigation ===== -->
+ <nav class="navbar">
+ <div class="container">
+ <a href="index.html" class="nav-brand">
+ <img class="brand-icon" src="assets/brand-mark.svg" alt="林焰智巡"><span>林焰智巡</span>
+ </a>
+ <ul class="nav-links">
+ <li><a href="index.html"><span>实时检测</span></a></li>
+ <li><a href="demo.html"><span>实时演示</span></a></li>
+ <li><a href="history.html"><span>历史回看</span></a></li>
+ <li><a href="scoring.html"><span>专家评审</span></a></li>
+ <li><a href="report.html" class="active"><span>模型报告</span></a></li>
+ <li><a href="dataset.html"><span>素材管理</span></a></li>
+ </ul>
+ <div class="nav-status" id="systemStatus">
+ <span class="status-dot" id="statusDot"></span>
+ <span id="statusText">连接中…</span>
+ </div>
+ </div>
+ </nav>
+
+ <!-- ===== Main Content ===== -->
+ <div class="page-wrapper">
+ <div class="container">
+ <!-- Header -->
+ <div class="page-header">
+ <h1>模型评估报告</h1>
+ <p class="subtitle">YOLO26s 火灾检测模型训练及性能评估</p>
+ </div>
+
+ <!-- Model Info Card -->
+ <div class="card-flat mb-24" id="modelInfoCard">
+ <div class="card-header">
+ <span class="card-title">模型信息</span>
+ <span class="badge badge-info" id="modelStatus">加载中</span>
+ </div>
+ <div class="grid-4" id="modelInfoGrid">
+ <div>
+ <div class="form-label">模型名称</div>
+ <div style="font-weight:600;" id="modelName">--</div>
+ </div>
+ <div>
+ <div class="form-label">检测类别</div>
+ <div style="font-weight:600;" id="modelClasses">--</div>
+ </div>
+ <div>
+ <div class="form-label">输入尺寸</div>
+ <div style="font-weight:600;" id="modelInputSize">--</div>
+ </div>
+ <div>
+ <div class="form-label">模型大小</div>
+ <div style="font-weight:600;" id="modelSize">--</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Metrics Cards -->
+ <div class="grid-4 mb-24" id="metricsCards">
+ <div class="metric-card">
+ <div class="metric-icon"></div>
+ <div class="metric-value" id="metricMAP50">--</div>
+ <div class="metric-label">mAP@50</div>
+ <div class="progress-bar mt-8">
+ <div class="progress-fill" id="barMAP50" style="width:0%"></div>
+ </div>
+ </div>
+ <div class="metric-card">
+ <div class="metric-icon"></div>
+ <div class="metric-value" id="metricMAP5095">--</div>
+ <div class="metric-label">mAP@50-95</div>
+ <div class="progress-bar mt-8">
+ <div class="progress-fill" id="barMAP5095" style="width:0%"></div>
+ </div>
+ </div>
+ <div class="metric-card">
+ <div class="metric-icon"></div>
+ <div class="metric-value" id="metricPrecision">--</div>
+ <div class="metric-label">精确率 Precision</div>
+ <div class="progress-bar mt-8">
+ <div class="progress-fill" id="barPrecision" style="width:0%"></div>
+ </div>
+ </div>
+ <div class="metric-card">
+ <div class="metric-icon"></div>
+ <div class="metric-value" id="metricRecall">--</div>
+ <div class="metric-label">召回率 Recall</div>
+ <div class="progress-bar mt-8">
+ <div class="progress-fill" id="barRecall" style="width:0%"></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Training Curves -->
+ <div class="card-flat mb-24">
+ <div class="card-header">
+ <span class="card-title">训练曲线</span>
+ <span class="badge badge-muted">训练过程可视化</span>
+ </div>
+ <div class="curve-grid" id="curveGrid">
+ <!-- Populated by JS. Fallback: -->
+ <div class="curve-card" onclick="openCurveLightbox(this)">
+ <img data-curve="results" alt="训练结果" src="">
+ <div class="curve-label">训练损失曲线</div>
+ </div>
+ <div class="curve-card" onclick="openCurveLightbox(this)">
+ <img data-curve="PR" alt="PR曲线" src="">
+ <div class="curve-label">PR 曲线 (Box)</div>
+ </div>
+ <div class="curve-card" onclick="openCurveLightbox(this)">
+ <img data-curve="F1" alt="F1曲线" src="">
+ <div class="curve-label">F1 曲线 (Box)</div>
+ </div>
+ <div class="curve-card" onclick="openCurveLightbox(this)">
+ <img data-curve="confusion" alt="混淆矩阵" src="">
+ <div class="curve-label">混淆矩阵</div>
+ </div>
+ <div class="curve-card" onclick="openCurveLightbox(this)">
+ <img data-curve="confusion_normalized" alt="归一化混淆矩阵" src="">
+ <div class="curve-label">归一化混淆矩阵</div>
+ </div>
+ <div class="curve-card" onclick="openCurveLightbox(this)">
+ <img data-curve="labels" alt="标签分布" src="">
+ <div class="curve-label">标签分布</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Assessment -->
+ <div class="assessment-card mb-24" id="assessmentCard">
+ <div class="card-header">
+ <span class="card-title">模型评估结论</span>
+ </div>
+ <div id="assessmentGrade" class="assessment-grade grade-b" style="display:none;">
+ <!-- Populated by JS -->
+ </div>
+ <div class="assessment-text" id="assessmentText">
+ <p style="color:var(--text-muted);">加载评估数据中…</p>
+ </div>
+ </div>
+
+ <!-- Footer -->
+ <footer class="footer">
+ <p>林焰智巡 · 森林火灾智能巡检系统 · 基于 YOLO26s 深度学习模型</p>
+ <p style="margin-top:4px;">© 2026 锐通科技 · Ruicom Technology</p>
+ </footer>
+ </div>
+ </div>
+
+ <!-- Lightbox -->
+ <div class="lightbox-overlay" id="lightbox">
+ <button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('active')"></button>
+ <img id="lightboxImg" alt="大图预览">
+ </div>
+
+ <script src="js/api.js?v=3.0.4"></script>
+ <script src="js/report.js?v=3.0.5"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+path: ../../数据集/FASDD_UAV
+train: train_v31_print_demo.txt
+val: val.txt
+test: test.txt
+
+names:
+  0: fire
+  1: smoke

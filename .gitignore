@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL support
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Dataset and training materials (not included in this archive)
+数据集/*
+!数据集/数据说明.md
+训练/素材/
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# Archived deliverables
+历史归档/
+部署/离线依赖/
+部署/RKNN量化校准/
+
+# Local training outputs (curated charts are copied to 文档/模型评估/训练曲线)
+runs/
+
+# Large base weights (keep the final deployable PyTorch model)
+*.pt
+!models/v4.0_for_preview/best.pt
+
+# Offline wheel dependencies
+wheels/
+
+# Runtime Dynamic Files
+app/static/results/*
+app/static/uploads/*
+app/static/thumbnails/*
+app/static/videos/*
+app/data/history.json
+app/data/scoring.json
+
+# Logs
+*.log
+.system_generated/
+appDataDir/

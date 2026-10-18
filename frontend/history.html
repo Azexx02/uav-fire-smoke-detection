@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>历史回看 — 林焰智巡</title>
+ <link rel="stylesheet" href="css/style.css?v=3.0.4">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='72' font-family='Arial'>L</text></svg>">
+</head>
+<body>
+ <!-- ===== Navigation ===== -->
+ <nav class="navbar">
+ <div class="container">
+ <a href="index.html" class="nav-brand">
+ <img class="brand-icon" src="assets/brand-mark.svg" alt="林焰智巡"><span>林焰智巡</span>
+ </a>
+ <ul class="nav-links">
+ <li><a href="index.html"><span>实时检测</span></a></li>
+ <li><a href="demo.html"><span>实时演示</span></a></li>
+ <li><a href="history.html" class="active"><span>历史回看</span></a></li>
+ <li><a href="scoring.html"><span>专家评审</span></a></li>
+ <li><a href="report.html"><span>模型报告</span></a></li>
+ <li><a href="dataset.html"><span>素材管理</span></a></li>
+ </ul>
+ <div class="nav-status" id="systemStatus">
+ <span class="status-dot" id="statusDot"></span>
+ <span id="statusText">连接中…</span>
+ </div>
+ </div>
+ </nav>
+
+ <!-- ===== Main Content ===== -->
+ <div class="page-wrapper">
+ <div class="container">
+ <!-- Header -->
+ <div class="page-header flex items-center justify-between">
+ <div>
+ <h1>历史回看</h1>
+ <p class="subtitle">查看和管理所有检测记录</p>
+ </div>
+ <div class="flex gap-12">
+ <button class="btn btn-ghost" id="btnRefresh" title="刷新">刷新</button>
+ <button class="btn btn-warning btn-sm" id="btnClearUnarchivedHistory" style="margin-right: 8px;">清除未归档</button>
+ <button class="btn btn-danger btn-sm" id="btnClearAll">清空全部</button>
+ </div>
+ </div>
+
+ <!-- Filters -->
+ <div class="card-flat mb-24 flex items-center gap-16" style="flex-wrap:wrap;">
+ <div class="flex items-center gap-8">
+ <span class="form-label" style="margin:0;white-space:nowrap;">类型筛选:</span>
+ <select class="form-select" id="filterType" style="width:auto;min-width:120px;">
+ <option value="all">全部类型</option>
+ <option value="capture">实时监测</option>
+ <option value="upload">图片上传</option>
+ <option value="video">视频监测</option>
+ </select>
+ </div>
+ <div class="flex items-center gap-8">
+ <span class="form-label" style="margin:0;white-space:nowrap;">评审状态:</span>
+ <select class="form-select" id="filterScored" style="width:auto;min-width:120px;">
+ <option value="all">全部</option>
+ <option value="scored">已评审</option>
+ <option value="unscored">未评审</option>
+ </select>
+ </div>
+ <div class="flex items-center gap-8">
+ <span class="form-label" style="margin:0;white-space:nowrap;">排序:</span>
+ <select class="form-select" id="sortOrder" style="width:auto;min-width:120px;">
+ <option value="newest">最新优先</option>
+ <option value="oldest">最早优先</option>
+ <option value="most_detections">检测最多</option>
+ </select>
+ </div>
+ <div style="margin-left:auto;">
+ <span class="badge badge-info badge-lg" id="recordCount">共 0 条记录</span>
+ </div>
+ </div>
+
+ <!-- History Grid -->
+ <div class="image-grid" id="historyGrid">
+ <!-- Populated by JS -->
+ </div>
+
+ <!-- Empty State -->
+ <div class="empty-state hidden" id="emptyState">
+ <div class="empty-state-icon"></div>
+ <p class="empty-state-text">暂无检测记录</p>
+ <p class="empty-state-hint">返回实时检测页面，上传图片或使用摄像头进行检测</p>
+ <a href="index.html" class="btn btn-primary mt-16">前往检测</a>
+ </div>
+
+ <!-- Loading -->
+ <div class="text-center mt-24 hidden" id="loadingState">
+ <div class="spinner" style="margin:0 auto;"></div>
+ <p class="mt-12" style="color:var(--text-muted);">加载中…</p>
+ </div>
+ </div>
+ </div>
+
+ <!-- ===== Lightbox Modal ===== -->
+ <div class="modal-overlay" id="historyModal">
+ <div class="modal-content" style="max-width:1000px;position:relative;">
+ <button class="modal-close" id="btnCloseModal"></button>
+ <div style="display:grid;grid-template-columns:1fr 360px;gap:24px;" id="modalGrid">
+ <!-- Image -->
+ <div>
+ <img id="modalImage" alt="检测结果" style="width:100%;border-radius:var(--radius-md);cursor:zoom-in;" onclick="openFullImage()">
+ <div class="flex gap-8 mt-12" id="modalImageTabs">
+ <button class="btn btn-sm btn-ghost active" data-img="annotated" id="btnShowAnnotated">标注图</button>
+ <button class="btn btn-sm btn-ghost" data-img="original" id="btnShowOriginal">原始图</button>
+ </div>
+ </div>
+ <!-- Details -->
+ <div>
+ <h3 style="font-family:var(--font-cn);margin-bottom:16px;">检测详情</h3>
+ <div class="mb-16">
+ <div class="flex items-center gap-8 mb-8">
+ <span class="form-label" style="margin:0;">时间:</span>
+ <span id="modalTime" style="font-size:0.9rem;"></span>
+ </div>
+ <div class="flex items-center gap-8 mb-8">
+ <span class="form-label" style="margin:0;">来源:</span>
+ <span class="badge badge-muted" id="modalSource"></span>
+ </div>
+ <div class="flex items-center gap-8 mb-8">
+ <span class="form-label" style="margin:0;">耗时:</span>
+ <span id="modalInference" style="font-size:0.9rem;color:var(--text-secondary);"></span>
+ </div>
+ </div>
+
+ <h4 style="font-family:var(--font-cn);font-size:0.9rem;margin-bottom:10px;">目标列表</h4>
+ <div id="modalDetections" style="max-height:300px;overflow-y:auto;">
+ <!-- Detection items -->
+ </div>
+
+ <div class="mt-16">
+ <button class="btn btn-danger btn-sm w-full" id="btnDeleteRecord">删除此记录</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Confirm Dialog -->
+ <div class="modal-overlay" id="confirmDialog">
+ <div class="confirm-dialog">
+ <h3 id="confirmTitle">确认操作</h3>
+ <p id="confirmMessage">确定要清空所有历史记录吗？此操作无法撤销。</p>
+ <div class="confirm-actions">
+ <button class="btn btn-ghost" id="btnConfirmCancel">取消</button>
+ <button class="btn btn-danger" id="btnConfirmOk">确定</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Full Image Lightbox -->
+ <div class="lightbox-overlay" id="lightbox">
+ <button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('active')"></button>
+ <img id="lightboxImg" alt="大图预览">
+ </div>
+
+ <script src="js/api.js?v=3.1.0"></script>
+ <script src="js/history.js?v=3.1.0"></script>
+</body>
+</html>

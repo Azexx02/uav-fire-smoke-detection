@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>专家评审 — 林焰智巡</title>
+ <link rel="stylesheet" href="css/style.css?v=3.0.4">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='72' font-family='Arial'>L</text></svg>">
+</head>
+<body>
+ <!-- ===== Navigation ===== -->
+ <nav class="navbar">
+ <div class="container">
+ <a href="index.html" class="nav-brand">
+ <img class="brand-icon" src="assets/brand-mark.svg" alt="林焰智巡"><span>林焰智巡</span>
+ </a>
+ <ul class="nav-links">
+ <li><a href="index.html"><span>实时检测</span></a></li>
+ <li><a href="demo.html"><span>实时演示</span></a></li>
+ <li><a href="history.html"><span>历史回看</span></a></li>
+ <li><a href="scoring.html" class="active"><span>专家评审</span></a></li>
+ <li><a href="report.html"><span>模型报告</span></a></li>
+ <li><a href="dataset.html"><span>素材管理</span></a></li>
+ </ul>
+ <div class="nav-status" id="systemStatus">
+ <span class="status-dot" id="statusDot"></span>
+ <span id="statusText">连接中…</span>
+ </div>
+ </div>
+ </nav>
+
+ <!-- ===== Main Content ===== -->
+ <div class="page-wrapper">
+ <div class="container">
+ <!-- Header -->
+ <div class="page-header text-center">
+ <h1 style="justify-content:center;">专家评审模式</h1>
+ <p class="subtitle" id="reviewModeSubtitle">评审实时演示采集的 20 张样本，计算比赛展示得分</p>
+ <div class="tabs" id="reviewModeTabs" style="max-width:420px;margin:16px auto 0;">
+ <button class="tab-btn active" id="btnDemoReviewMode" type="button" data-review-mode="demo">实时演示评审</button>
+ <button class="tab-btn" id="btnAllReviewMode" type="button" data-review-mode="all">全部记录评审</button>
+ </div>
+ </div>
+
+ <!-- Score Dashboard -->
+ <div class="score-dashboard" id="scoreDashboard" style="grid-template-columns: repeat(4, 1fr); gap: 16px;">
+ <!-- 1. 综合得分 -->
+ <div class="score-dashboard-item" id="totalScoreCard" style="grid-column: span 1; border: 1px solid rgba(245, 158, 11, 0.15); box-shadow: 0 4px 12px rgba(245,158,11,0.03);">
+ <div class="label">实测综合得分</div>
+ <div class="score-display" style="margin-top: 10px;">
+ <span class="score-big" id="demoTotalScore" style="color: var(--accent-orange); font-size: 2.1rem; font-weight: 800;">0.00</span>
+ <span class="score-unit" style="font-size: 0.8rem; color: var(--text-muted);">/ 50.00 分</span>
+ </div>
+ <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">总得分 = 准确度分 + 时效分</div>
+ </div>
+ 
+ <!-- 2. 实测准确度 -->
+ <div class="score-dashboard-item" id="accuracyScoreCard">
+ <div class="label">实测准确度</div>
+ <div class="score-display" style="margin-top: 10px;">
+ <span class="score-big" id="totalScore" style="color: var(--success-green); font-size: 2.1rem; font-weight: 800;">0.00</span>
+ <span class="score-unit" id="accuracyScoreUnit" style="font-size: 0.8rem; color: var(--text-muted);">/ 35.00 分</span>
+ </div>
+ <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;" id="accuracyDetails">0/20 正确 (1.75分/张)</div>
+ </div>
+ 
+ <!-- 3. 推理时效性 -->
+ <div class="score-dashboard-item" id="timeScoreCard">
+ <div class="label">推理时效性</div>
+ <div class="score-display" style="margin-top: 10px;">
+ <span class="score-big" id="demoTimeScore" style="color: #60a5fa; font-size: 2.1rem; font-weight: 800;">0.00</span>
+ <span class="score-unit" style="font-size: 0.8rem; color: var(--text-muted);">/ 15.00 分</span>
+ </div>
+ <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;" id="timeDetails">耗时 -- 秒 (限180秒)</div>
+ </div>
+
+ <!-- 4. 评审进度 -->
+ <div class="score-dashboard-item" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 16px;">
+ <div class="label" style="margin-bottom: 6px;">评审进度</div>
+ <div style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary);" id="reviewedCount">0/20</div>
+ <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">已评审 / 总样本</div>
+ <div class="flex gap-12 mt-8" style="font-size: 0.72rem; display: none;">
+ <span style="color:var(--success-green);" id="correctCount">0</span> 正
+ <span style="color:var(--danger-red);" id="incorrectCount">0</span>误
+ </div>
+ </div>
+ </div>
+
+ <!-- Main Review Area -->
+ <div class="card-flat hidden" id="reviewArea">
+ <!-- Image Display -->
+ <div style="max-width:800px;margin:0 auto;">
+ <div class="video-preview relative" id="reviewImageContainer">
+ <img id="reviewImage" alt="评审图片" style="cursor:zoom-in;" onclick="openReviewLightbox()">
+ <div class="placeholder hidden" id="reviewPlaceholder">
+ <div class="placeholder-icon"></div><span>加载评审图片中…</span>
+ </div>
+ <div class="loading-overlay" id="reviewLoading">
+ <div class="spinner"></div>
+ </div>
+ </div>
+
+ <!-- Image indicator -->
+ <div class="image-nav mt-12">
+ <button class="btn btn-ghost btn-sm" id="btnPrev">← 上一张</button>
+ <span class="image-indicator" id="imageIndicator">第 0/0 张</span>
+ <button class="btn btn-ghost btn-sm" id="btnNext">下一张 →</button>
+ </div>
+
+ <!-- Detection Details -->
+ <div class="card-flat mt-16" id="reviewDetectionPanel">
+ <div class="card-header">
+ <span class="card-title">检测结果</span>
+ <span class="badge badge-muted" id="reviewDetCount">0 个目标</span>
+ </div>
+ <div id="reviewDetList">
+ <p style="color:var(--text-muted);font-size:0.85rem;">暂无数据</p>
+ </div>
+ </div>
+
+ <!-- Scoring Actions -->
+ <div class="scoring-actions mt-16">
+ <button class="btn btn-success btn-lg" id="btnCorrect">正确
+ </button>
+ <button class="btn btn-danger btn-lg" id="btnIncorrect">错误
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Empty State -->
+ <div class="empty-state hidden" id="emptyState">
+ <div class="empty-state-icon"></div>
+ <p class="empty-state-text">暂无检测记录可供评审</p>
+ <p class="empty-state-hint">请先在实时检测页面上传图片或使用摄像头进行检测</p>
+ <a href="demo.html" class="btn btn-primary mt-16" id="emptyStateAction">前往演示</a>
+ </div>
+
+ <!-- Thumbnail Strip -->
+ <div class="card-flat mt-24 hidden" id="thumbStripContainer">
+ <div class="card-header">
+ <span class="card-title">所有检测图片</span>
+ <button class="btn btn-ghost btn-sm" id="btnResetScoring">重置评审</button>
+ </div>
+ <div class="thumb-strip" id="thumbStrip">
+ <!-- Populated by JS -->
+ </div>
+ </div>
+
+ <!-- Score Summary (Collapsible) -->
+ <div class="card-flat mt-24 hidden" id="scoreSummaryPanel">
+ <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+ <div style="cursor:pointer; flex:1; display:flex; align-items:center; gap:8px;" id="summaryToggle">
+ <span class="card-title">评审汇总</span>
+ <span style="color:var(--text-muted);font-size:0.8rem;" id="summaryToggleIcon">展开</span>
+ </div>
+ <button class="btn btn-ghost btn-sm" id="btnExportScoring" style="display:none; font-size:0.75rem; border:1px solid rgba(255,255,255,0.15); padding: 4px 10px;">导出数据</button>
+ </div>
+ <div id="summaryContent" class="hidden">
+ <table class="data-table" id="summaryTable">
+ <thead>
+ <tr>
+ <th>序号</th>
+ <th>图片</th>
+ <th>检测数</th>
+ <th>评审结果</th>
+ <th>得分</th>
+ </tr>
+ </thead>
+ <tbody id="summaryTableBody">
+ <!-- Populated by JS -->
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Confirm Dialog -->
+ <div class="modal-overlay" id="confirmDialog">
+ <div class="confirm-dialog">
+ <h3 id="confirmTitle">确认重置</h3>
+ <p id="confirmMessage">确定要重置所有评审结果吗？此操作无法撤销。</p>
+ <div class="confirm-actions">
+ <button class="btn btn-ghost" id="btnConfirmCancel">取消</button>
+ <button class="btn btn-danger" id="btnConfirmOk">确定重置</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Expert Feedback Dialog (False Alarm vs Missed Case) -->
+ <div class="modal-overlay" id="feedbackDialog">
+ <div class="confirm-dialog" style="max-width: 540px; border: 1px solid rgba(239, 68, 68, 0.2); box-shadow: 0 8px 32px rgba(239, 68, 68, 0.08); padding: 20px;" id="feedbackDialogContent">
+ <!-- Populated by JS -->
+ </div>
+ </div>
+
+ <!-- Lightbox -->
+ <div class="lightbox-overlay" id="lightbox">
+ <button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('active')"></button>
+ <img id="lightboxImg" alt="大图预览">
+ </div>
+
+ <script src="js/api.js?v=3.0.4"></script>
+ <script src="js/scoring.js?v=3.0.9"></script>
+</body>
+</html>

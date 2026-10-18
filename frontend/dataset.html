@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>素材管理 — 林焰智巡</title>
+ <link rel="stylesheet" href="css/style.css?v=3.0.4">
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='72' font-family='Arial'>L</text></svg>">
+ <style>
+ /* Custom accordions styling for glassmorphism layout */
+ .archive-item-card {
+ background: rgba(255, 255, 255, 0.02);
+ border: 1px solid rgba(255, 255, 255, 0.05);
+ border-radius: var(--radius-md);
+ overflow: hidden;
+ transition: all var(--transition);
+ }
+ 
+ .archive-item-card:hover {
+ border-color: rgba(255, 255, 255, 0.1);
+ background: rgba(255, 255, 255, 0.03);
+ }
+ 
+ .archive-item-header {
+ padding: 14px 16px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
+ cursor: pointer;
+ user-select: none;
+ }
+
+ .archive-item-main {
+ min-width: 0;
+ }
+
+ .archive-batch-title {
+ font-weight: 600;
+ color: var(--text-primary);
+ font-size: 0.92rem;
+ line-height: 1.35;
+ overflow-wrap: anywhere;
+ }
+
+ .archive-batch-meta {
+ font-size: 0.75rem;
+ color: var(--text-muted);
+ margin-top: 4px;
+ text-align: left;
+ line-height: 1.5;
+ }
+
+ .archive-toggle {
+ flex: 0 0 auto;
+ color: var(--text-muted);
+ font-size: 0.8rem;
+ padding: 4px 10px;
+ border-radius: 4px;
+ background: rgba(255,255,255,0.03);
+ }
+ 
+ .archive-item-body {
+ padding: 16px;
+ background: rgba(0, 0, 0, 0.2);
+ border-top: 1px solid rgba(255, 255, 255, 0.03);
+ }
+
+ .archive-preview-label {
+ display: block;
+ font-size: 0.75rem;
+ color: var(--text-muted);
+ font-weight: 600;
+ margin-bottom: 8px;
+ }
+ 
+ .archive-thumbs-row {
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+ gap: 8px;
+ }
+ 
+ .archive-thumb {
+ width: 100%;
+ aspect-ratio: 1;
+ object-fit: cover;
+ border-radius: 4px;
+ border: 1px solid rgba(255,255,255,0.1);
+ background: #000;
+ transition: transform var(--transition);
+ cursor: zoom-in;
+ }
+ 
+ .archive-thumb:hover {
+ transform: scale(1.08);
+ border-color: var(--accent-orange);
+ }
+
+ .archive-more-count {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ min-height: 56px;
+ aspect-ratio: 1;
+ font-size: 0.8rem;
+ background: rgba(255,255,255,0.05);
+ color: var(--text-muted);
+ border-radius: 4px;
+ border: 1px solid rgba(255,255,255,0.1);
+ }
+
+ .archive-action-row {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-top: 14px;
+ border-top: 1px solid rgba(255,255,255,0.05);
+ padding-top: 12px;
+ gap: 10px;
+ }
+
+ .archive-name {
+ min-width: 0;
+ font-size: 0.75rem;
+ color: var(--text-muted);
+ text-align: left;
+ overflow-wrap: anywhere;
+ }
+
+ .archive-actions {
+ display: flex;
+ gap: 8px;
+ flex-wrap: wrap;
+ justify-content: flex-end;
+ flex: 0 0 auto;
+ }
+
+ .archived-list {
+ display: flex;
+ flex-direction: column;
+ gap: 12px;
+ max-height: min(72vh, 760px);
+ overflow-y: auto;
+ padding-right: 4px;
+ }
+ 
+ .grid-two-columns {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 24px;
+ }
+ 
+ @media (max-width: 992px) {
+ .grid-two-columns {
+ grid-template-columns: 1fr;
+ }
+
+ .archived-list {
+ max-height: none;
+ overflow-y: visible;
+ padding-right: 0;
+ }
+ }
+
+ @media (max-width: 640px) {
+ .archive-item-header,
+ .archive-action-row {
+ align-items: flex-start;
+ flex-direction: column;
+ }
+
+ .archive-actions {
+ width: 100%;
+ justify-content: flex-start;
+ }
+ }
+ </style>
+</head>
+<body>
+ <!-- ===== Navigation ===== -->
+ <nav class="navbar">
+ <div class="container">
+ <a href="index.html" class="nav-brand">
+ <img class="brand-icon" src="assets/brand-mark.svg" alt="林焰智巡"><span>林焰智巡</span>
+ </a>
+ <ul class="nav-links">
+ <li><a href="index.html"><span>实时检测</span></a></li>
+ <li><a href="demo.html"><span>实时演示</span></a></li>
+ <li><a href="history.html"><span>历史回看</span></a></li>
+ <li><a href="scoring.html"><span>专家评审</span></a></li>
+ <li><a href="report.html"><span>模型报告</span></a></li>
+ <li><a href="dataset.html" class="active"><span>素材管理</span></a></li>
+ </ul>
+ <div class="nav-status" id="systemStatus">
+ <span class="status-dot" id="statusDot"></span>
+ <span id="statusText">连接中…</span>
+ </div>
+ </div>
+ </nav>
+
+ <!-- ===== Main Content ===== -->
+ <div class="page-wrapper">
+ <div class="container">
+ <!-- Header -->
+ <div class="page-header flex items-center justify-between">
+ <div>
+ <h1>素材管理</h1>
+ <p class="subtitle">管理专家审计归类好的负样本与强化训练样本，用于下一次增量重训</p>
+ </div>
+ <div>
+ <button class="btn btn-danger" id="btnClearUnarchived" style="margin-right: 8px;">清除未归档素材</button>
+ <button class="btn btn-primary" id="btnArchiveDataset">归档打包当前素材</button>
+ </div>
+ </div>
+
+ <!-- Two Column Layout -->
+ <div class="grid-two-columns mt-24">
+ 
+ <!-- ==================== LEFT COLUMN: 未归档素材 ==================== -->
+ <div class="card-flat" id="unarchivedColumn" style="display: flex; flex-direction: column;">
+ <div class="card-header flex items-center justify-between" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 16px;">
+ <span class="card-title">未归档素材 (收集于专家评审)</span>
+ <span class="badge badge-warning" id="unarchivedCountBadge">0 个文件</span>
+ </div>
+
+ <!-- Quick Statistics Dashboard -->
+ <div class="flex gap-12 mb-16">
+ <div class="score-dashboard-item" style="flex: 1; padding: 12px; text-align: center; border-radius: var(--radius-md); background: rgba(255,255,255,0.02);">
+ <div style="font-size: 0.75rem; color: var(--text-muted);">负样本数 (误报)</div>
+ <div style="font-size: 1.6rem; font-weight: 700; color: var(--danger-red); margin-top: 4px;" id="negCount">0</div>
+ </div>
+ <div class="score-dashboard-item" style="flex: 1; padding: 12px; text-align: center; border-radius: var(--radius-md); background: rgba(255,255,255,0.02);">
+ <div style="font-size: 0.75rem; color: var(--text-muted);">强化样本数 (漏报)</div>
+ <div style="font-size: 1.6rem; font-weight: 700; color: var(--accent-orange); margin-top: 4px;" id="reinfCount">0</div>
+ </div>
+ </div>
+
+ <!-- Unarchived Images Grid -->
+ <div class="image-grid" id="unarchivedGrid" style="grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 520px; overflow-y: auto; padding-right: 4px;">
+ <!-- Filled by JS -->
+ </div>
+
+ <!-- Empty State -->
+ <div class="empty-state hidden" id="unarchivedEmpty" style="padding: 80px 10px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+ <div style="font-size: 3rem; margin-bottom: 10px; animation: pulse 3s infinite;"></div>
+ <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">暂无未归档素材</p>
+ <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 6px; max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.4;">
+ 当专家在“专家评审”中判定“错误”并确认是否实际存在火焰/烟雾后，系统会自动将有误帧归类在此处。
+ </p>
+ </div>
+ </div>
+
+ <!-- ==================== RIGHT COLUMN: 已归档素材 ==================== -->
+ <div class="card-flat" id="archivedColumn" style="display: flex; flex-direction: column;">
+ <div class="card-header flex items-center justify-between" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 16px;">
+ <span class="card-title">已归档历史包 (按归档时间折叠)</span>
+ <span class="badge badge-success" id="archivedCountBadge">0 个批次</span>
+ </div>
+
+ <!-- Archived List -->
+ <div class="archived-list" id="archivedList">
+ <!-- Filled by JS -->
+ </div>
+
+ <!-- Empty State -->
+ <div class="empty-state hidden" id="archivedEmpty" style="padding: 80px 10px; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+ <div style="font-size: 3rem; margin-bottom: 10px;"></div>
+ <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">暂无归档数据集包</p>
+ <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 6px; max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.4;">
+ 点击左上角的“归档当前素材”按钮，系统可将当前的负样本、强化样本及全部历史巡检图像打包形成专属的持久化归档包。
+ </p>
+ </div>
+ </div>
+
+ </div>
+ </div>
+ </div>
+
+ <!-- Lightbox for Image viewing -->
+ <div class="lightbox-overlay" id="lightbox">
+ <button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('active')"></button>
+ <img id="lightboxImg" alt="素材图片预览">
+ </div>
+
+ <!-- Confirm Dialog -->
+ <div class="modal-overlay" id="confirmDialog">
+ <div class="confirm-dialog">
+ <h3 id="confirmTitle">确认操作</h3>
+ <p id="confirmMessage">确定要清空未归档的素材图片吗？此操作无法撤销，相关错误记录将恢复为未评分状态。</p>
+ <div class="confirm-actions">
+ <button class="btn btn-ghost" id="btnConfirmCancel">取消</button>
+ <button class="btn btn-danger" id="btnConfirmOk">确定</button>
+ </div>
+ </div>
+ </div>
+
+ <script src="js/api.js?v=3.1.0"></script>
+ <script src="js/dataset.js?v=3.1.4"></script>
+</body>
+</html>
