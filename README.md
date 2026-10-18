@@ -135,3 +135,9 @@ python 训练/脚本/prepare_v32_hard_negative_training.py# v32 难负样本
 
 本项目于 **2026-10-18** 整理归档：源码保持可运行，文档、模型与部署资源分类存放，运行产物与数据集不纳入仓库，Git 重建为单次提交。完整统计与清理明细见 [归档清单.md](归档清单.md)。
 
+## 8. 许可证
+
+本项目采用 **GNU Affero General Public License v3.0（AGPL-3.0）**，见 [LICENSE](LICENSE)。
+
+项目使用 Ultralytics YOLOv8 / YOLO26 进行训练与推理，相关代码与模型权重遵循 AGPL-3.0。FASDD_UAV 数据集遵循其原始许可，引用与获取方式见[数据说明](数据集/数据说明.md)。
+
