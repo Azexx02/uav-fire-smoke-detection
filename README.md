@@ -126,8 +126,6 @@ python 训练/脚本/prepare_v32_hard_negative_training.py# v32 难负样本
 | [比赛规则](文档/作品报告与规则/比赛规则.pdf) | 赛事规则原文 |
 | [v4 性能报告（Markdown）](文档/模型评估/Markdown/v4_performance_report.md) | 指标、补充测试与推理性能 |
 | [v4 性能报告（PDF）](文档/模型评估/PDF/v4_model_performance_report_final.pdf) | 最终提交版 |
-| [模型训练与答辩指南](文档/模型评估/Markdown/model_training_defense_guide.md) | 训练过程与答辩要点 |
-| [答辩脚本](文档/模型评估/Markdown/defense_script_v4.md) | 答辩讲解稿 |
 | [过程记录](文档/过程记录/progress.md) | 逐日进展与指标变化 |
 | [Git 开发历史](文档/过程记录/git_history.md) | 重建仓库前导出的 19 条提交记录 |
 | [训练曲线](文档/模型评估/训练曲线/README.md) | 基线 / 误报抑制 / 最终模型三组精选图表 |
@@ -136,13 +134,4 @@ python 训练/脚本/prepare_v32_hard_negative_training.py# v32 难负样本
 ## 7. 归档说明
 
 本项目于 **2026-10-18** 整理归档：源码保持可运行，文档、模型与部署资源分类存放，运行产物与数据集不纳入仓库，Git 重建为单次提交。完整统计与清理明细见 [归档清单.md](归档清单.md)。
-
-## 8. GitHub 发布
-
-仓库包含源码、文档报告、交付模型与精选训练曲线；数据集、完整 `runs/`、离线 wheels 等大文件已排除。可直接推送：
-
-```powershell
-git remote add origin https://github.com/<你的用户名>/<仓库名>.git
-git push -u origin main
-```
 
